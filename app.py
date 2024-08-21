@@ -8,12 +8,17 @@ df_final = pd.read_csv('zomato_final_data.csv')  # Update with your dataset path
 # Add a column with prices in Indian Rupees
 df_final['Average Cost for two in INR'] = df_final['Average Cost for two'] * df_final['Exchange Rate']
 
+df_final = df_final[df_final['Average Cost for two in INR'] > 0]
+
 # Streamlit app
 st.title('Zomato Business Analysis Dashboard')
 
 # Dropdown for country-specific data
-country = st.selectbox('Choose a Country', df_final['Country'].unique())
+country_options = df_final['Country'].unique()
+default_country = 'India' if 'India' in country_options else country_options[0]
+country = st.selectbox('Choose a Country', country_options, index=list(country_options).index(default_country))
 filtered_df = df_final[df_final['Country'] == country]
+
 
 # Chart 1: Average Cost for Two in INR
 fig1 = px.bar(filtered_df, x='Restaurant Name', y='Average Cost for two in INR', color='City', title='Average Cost for Two in INR')
@@ -55,29 +60,32 @@ st.plotly_chart(fig3)
 # Comparison between the cities in India
 if country == 'India':
     st.subheader('Comparison Between Cities in India')
-    city_comparison = df_final[df_final['Country'] == 'India'].groupby('City')['Average Cost for two in INR'].mean().reset_index()
-    fig4 = px.bar(city_comparison, x='City', y='Average Cost for two in INR', title='Average Cost for Two in INR by City')
+    city_comparison = df_final[df_final['Country'] == 'India'].groupby('City')['Converted Cost (INR)'].mean().reset_index()
+    fig4 = px.bar(city_comparison, x='City', y='Converted Cost (INR)', title='Converted Cost (INR)')
     st.plotly_chart(fig4)
 
     # Part of India that spends more on online delivery
     st.subheader('Part of India Spending More on Online Delivery')
-    online_delivery = df_final[(df_final['Country'] == 'India') & (df_final['Has Online delivery'] == 'Yes')].groupby('City')['Average Cost for two in INR'].sum().reset_index()
-    fig5 = px.bar(online_delivery, x='City', y='Average Cost for two in INR', title='Total Spending on Online Delivery by City')
+    online_delivery = df_final[(df_final['Country'] == 'India') & (df_final['Has Online delivery'] == 'Yes')].groupby('City')['Converted Cost (INR)'].sum().reset_index()
+    fig5 = px.bar(online_delivery, x='City', y='Converted Cost (INR)', title='Total Spending on Online Delivery by City')
     st.plotly_chart(fig5)
 
     # Part of India that spends more on dine-in
     st.subheader('Part of India Spending More on Dine-in')
-    dine_in = df_final[(df_final['Country'] == 'India') & (df_final['Has Online delivery'] == 'No')].groupby('City')['Average Cost for two in INR'].sum().reset_index()
-    fig6 = px.bar(dine_in, x='City', y='Average Cost for two in INR', title='Total Spending on Dine-in by City')
+    dine_in = df_final[(df_final['Country'] == 'India') & (df_final['Has Online delivery'] == 'No')].groupby('City')['Converted Cost (INR)'].sum().reset_index()
+    fig6 = px.bar(dine_in, x='City', y='Converted Cost (INR)', title='Total Spending on Dine-in by City')
     st.plotly_chart(fig6)
 
     # Compare high living cost vs low living cost areas in India
     st.subheader('High Living Cost vs Low Living Cost Areas in India')
-    high_cost_areas = df_final[df_final['Country'] == 'India'].sort_values(by='Average Cost for two in INR', ascending=False).head(5)
-    low_cost_areas = df_final[df_final['Country'] == 'India'].sort_values(by='Average Cost for two in INR').head(5)
+    low_cost_areas = df_final[df_final['Country'] == 'India'].sort_values(by='Converted Cost (INR)').head(5)
+    high_cost_areas = df_final[df_final['Country'] == 'India'].sort_values(by='Converted Cost (INR)', ascending=False).head(5)
     
     st.write('High Living Cost Areas:')
-    st.write(high_cost_areas[['City', 'Average Cost for two in INR']])
+    st.write(high_cost_areas[['City', 'Converted Cost (INR)']])
     
     st.write('Low Living Cost Areas:')
-    st.write(low_cost_areas[['City', 'Average Cost for two in INR']])
+    st.write(low_cost_areas[['City', 'Converted Cost (INR)']])
+
+
+
